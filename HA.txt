@@ -1,0 +1,48 @@
+sensor:
+  - platform: mqtt
+    state_topic: "bleconnect/4CFB2FBD-522A-4EF1-37BA-709A48715C40"  # To jest temat MQTT, na którym urządzenie publikuje dane
+    name: "Soil sensor v2.0.4"
+    unique_id: "4CFB2FBD-522A-4EF1-37BA-709A48715C40"  # Unikalny identyfikator urządzenia
+    unit_of_measurement: "%"  # Jednostka miary wilgotności gleby
+    value_template: "{{ value_json.soil_moisture }}"  # Wyciąganie wilgotności gleby z danych JSON
+    device_class: humidity
+    state_class: measurement
+    device:
+      identifiers:
+        - "4CFB2FBD-522A-4EF1-37BA-709A48715C40"  # Unikalny identyfikator urządzenia
+      manufacturer: "ST-production"  # Producent urządzenia
+      model: "Soil sensor v2.0.4"  # Model urządzenia
+      name: "Soil sensor"  # Nazwa urządzenia
+    json_attributes_topic: "bleconnect/4CFB2FBD-522A-4EF1-37BA-709A48715C40"  # Temat MQTT z pełnymi danymi JSON
+    attribute_templates:
+      battery: "{{ value_json.battery }}"  # Wyciąganie informacji o baterii z danych JSON
+      timestamp: "{{ value_json.timestamp }}"  # Wyciąganie informacji o dacie z danych JSON
+
+
+  - platform: mqtt
+    state_topic: "bleconnect/C8E20010-8880-3A2A-A65C-6BC38C3D47CB"  # To jest temat MQTT, na którym urządzenie publikuje dane
+    name: "Soil sensor v1.0.0"
+    unique_id: "C8E20010-8880-3A2A-A65C-6BC38C3D47CB"  # Unikalny identyfikator urządzenia
+    unit_of_measurement: "%"  # Jednostka miary wilgotności gleby
+    value_template: "{{ value_json.soil_moisture }}"  # Wyciąganie wilgotności gleby z danych JSON
+    device_class: humidity
+    state_class: measurement
+    json_attributes_topic: "bleconnect/C8E20010-8880-3A2A-A65C-6BC38C3D47CB"  # Temat MQTT z pełnymi danymi JSON
+    device:
+      identifiers:
+        - "C8E20010-8880-3A2A-A65C-6BC38C3D47CB"  # Unikalny identyfikator urządzenia
+      manufacturer: "ST-production"  # Producent urządzenia
+      model: "Soil sensor v1.0.0"  # Model urządzenia
+      name: "Soil sensor"  # Nazwa urządzenia
+    attribute_templates:
+      battery: "{{ value_json.battery }}"  # Wyciąganie informacji o baterii z danych JSON
+      timestamp: "{{ value_json.timestamp }}"  # Wyciąganie informacji o dacie z danych JSON
+
+
+/bleconnect/getAll -> return list of devices -> list of [name, address, device type]
+/bleconnect/getNews -> return list of new devices which is not in DB : list of [json.dumps(global_data]
+/bleconnect/getAdd -> return add new devvice: params: address: str
+
+/bleconnect/soil/connect -> connect do ble debice, params: address
+/bleconnect/soil/calibrate -> calibare, parms: address, commad [START, DRY, WET, END]
+/bleconnect/soil/disconnect -> disconnect debice, params: address

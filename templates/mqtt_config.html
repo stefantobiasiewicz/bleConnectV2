@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Konfiguracja MQTT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <div class="row frame">
+        <div class="col">
+          <h1>Konfiguracja MQTT</h1>
+          <p>Adres Brokera: {{ config.broker_address }}</p>
+          <p>Port: {{ config.port }}</p>
+          <p>ID Klienta: {{ config.client_id }}</p>
+          <p>Czysta sesja: {{ config.clean_session }}</p>
+          <p>Użytkownik: {{ config.username }}</p>
+          <p>Hasło: {{ config.password }}</p>
+          <p>Keepalive: {{ config.keepalive }}</p>
+          <a class="btn btn-primary" href="/mqtt/config/edit">Edytuj</a>
+          <a class="btn btn-secondary" href="/">Powrót</a>
+        </div>
+    </div>
+</div>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</body>
+</html>

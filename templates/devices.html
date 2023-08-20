@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Moja aplikacja Flask</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#addDeviceButton').click(function() {
+                var addDeviceModal = $('#addDeviceModal');
+                var modalBody = $('#addDeviceModal .modal-body');
+
+                // Pokaz spinner
+                var spinnerHtml = '<div class="text-center"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>';
+                modalBody.html(spinnerHtml);
+
+                $.ajax({
+                    url: '/api/ble/search',
+                    type: 'POST',
+                    dataType: 'json',
+                    beforeSend: function() {
+                        // Pokaż spinner przed wysłaniem żądania
+                        addDeviceModal.modal('show');
+                        $('.modal-spinner').show();
+                    },
+                    success: function(response) {
+                        var devices = response.devices;
+                        var modalBody = $('#addDeviceModal .modal-body');
+
+                        if (devices.length > 0) {
+                            var deviceList = $('<div id="deviceList"><h3>Lista znalezionych urządzeń:</h3><ul id="deviceItems"></ul></div>');
+                            var deviceItems = deviceList.find('#deviceItems');
+
+                            deviceItems.empty();
+
+                            for (var i = 0; i < devices.length; i++) {
+                                var device = devices[i];
+                                var listItem = '<li>' + device.name + ' - ' + device.address + ' <button class="connectButton btn btn-primary" data-address="' + device.address + '">Connect</button></li>';
+                                deviceItems.append(listItem);
+                            }
+
+                            modalBody.html(deviceList);
+                            $('#noDevicesMessage').hide();
+                        } else {
+                            modalBody.html('<div id="noDevicesMessage"><p class="text-center">Brak znalezionych urządzeń.</p></div>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                        modalBody.html('<p class="text-center">Wystąpił błąd podczas pobierania danych.</p>');
+                    },
+                    complete: function() {
+                        // Schowaj spinner po zakończeniu żądania
+                        $('.modal-spinner').hide();
+                        addDeviceModal.modal('show');
+                    }
+                });
+            });
+
+            $(document).on('click', '.connectButton', function() {
+                var address = $(this).data('address');
+                // Wykonaj akcję połączenia z urządzeniem o podanym adresie
+                console.log('Connecting to device with address: ' + address);
+
+                $.ajax({
+                    url: '/api/ble/add',
+                    method: 'POST',
+                    data: { address: address },
+                    success: function(response) {
+                        console.log('Device connected successfully');
+<!--                        // Przekierowanie do widoku /device/<device_id>-->
+<!--                        window.location.href = '/device/' + response.id;-->
+                    },
+                    error: function(error) {
+                        console.log('Error connecting to device');
+                    }
+                });
+            });
+
+            $(document).on('click', '.details', function() {
+                var addDeviceModal = $('#addDeviceModal');
+                var modalBody = $('#addDeviceModal .modal-body');
+
+                // Pokaz spinner
+                var spinnerHtml = '<div class="text-center"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>';
+                modalBody.html(spinnerHtml);
+
+                addDeviceModal.modal('show');
+                $('.modal-spinner').show();
+            });
+        });
+
+
+        function addNewDevice(device) {
+  // Pobranie referencji do tabeli
+  const table = document.getElementById('deviceTable');
+
+  // Utworzenie nowego wiersza
+  const row = document.createElement('tr');
+
+  // Dodanie komórek do wiersza
+  const idCell = document.createElement('td');
+  idCell.textContent = device.id;
+  row.appendChild(idCell);
+
+  const nameCell = document.createElement('td');
+  nameCell.textContent = device.name;
+  row.appendChild(nameCell);
+
+  const addressCell = document.createElement('td');
+  addressCell.textContent = device.address;
+  row.appendChild(addressCell);
+
+  const statusCell = document.createElement('td');
+  statusCell.textContent = device.status;
+  row.appendChild(statusCell);
+
+  const typeCell = document.createElement('td');
+  typeCell.textContent = device.type;
+  row.appendChild(typeCell);
+
+  const detailsCell = document.createElement('td');
+  const detailsLink = document.createElement('a');
+  detailsLink.setAttribute('class', 'details btn btn-primary');
+  detailsLink.setAttribute('href', `/device/${device.id}?mac=${device.mac}`);
+  detailsLink.textContent = 'Szczegóły';
+  detailsCell.appendChild(detailsLink);
+  row.appendChild(detailsCell);
+
+  // Dodanie nowego wiersza do tabeli
+  table.querySelector('tbody').appendChild(row);
+}
+
+function handleSSE() {
+  const eventSource = new EventSource('/stream'); // Adres SSE endpointu
+
+  eventSource.addEventListener('device_added', (event) => {
+    const data = JSON.parse(event.data);
+
+    // Przetwarzanie otrzymanych danych
+    const device = {
+      id: data.id,
+      name: data.name,
+      address: data.address,
+      status: data.status,
+      type: data.type,
+      mac: data.mac
+    };
+
+    // Dodanie nowego urządzenia do tabeli
+    addNewDevice(device);
+  });
+
+  eventSource.addEventListener('error', (event) => {
+    // Obsługa błędu po stronie SSE
+    console.error('SSE error:', event);
+    eventSource.close();
+  });
+}
+
+    </script>
+</head>
+<body>
+    <div class="main-content">
+        <h2>Ble Connect!</h2>
+
+        <div style="display: flex; width: 90%;">
+            <div class="frame">
+                <h3>Mqtt adapter</h3>
+                <label>host: </label>
+                <span class="label label-default">RUN</span>
+                <a class="details btn btn-primary" href="/mqtt/config">MQTT adapters</a>
+                tutaj bedzie lista adapterów mqtt pozwalającyh na wysyłanie informacji do wielu klientów mqtt/serwerów
+            </div>
+            <div class="frame">
+                <h3>Ble control</h3>
+                <button id="scanButton" class="btn btn-primary">Scan</button>
+                <button id="connectAllButton" class="btn btn-primary">Connect ALl</button>
+                <button id="disonnectAllButton" class="btn btn-primary">Disconnect All</button>
+            </div>
+        </div>
+
+        <div class="frame">
+            <div style="display: flex; justify-content: space-between; padding-right: 20px;">
+                <div class="btn">
+                    <h3 >Lista posiadanych urządzeń:</h3>
+                </div>
+                <button id="addDeviceButton" class="btn btn-primary">Dodaj urządzenie</button>
+            </div>
+            <table id="deviceTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Friendly Name</th>
+                        <th>Address</th>
+                        <th>connected</th>
+                        <th>type</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr>
+                        <td>{{ device.id }}</td>
+                        <td>{{ device.name }}</td>
+                        <td>{{ device.address }}</td>
+                        <td>{{ device.status }}</td>
+                        <td>{{ device.type }}</td>
+                        <td><a class="details btn btn-primary" href="/device/{{ device.id }}?mac={{ device.mac }}">Szczegóły</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addDeviceModal" tabindex="-1" role="dialog" aria-labelledby="addDeviceModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDeviceModalLabel">Znalezione urządzenia</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center modal-spinner" style="display: none;">
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="deviceList" style="display: none;">
+                        <h3>Lista znalezionych urządzeń:</h3>
+                        <ul id="deviceItems"></ul>
+                    </div>
+                    <div id="noDevicesMessage" style="display: none;">
+                        <p class="text-center">Brak znalezionych urządzeń.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Zamknij</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
