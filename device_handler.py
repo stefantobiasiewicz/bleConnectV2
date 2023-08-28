@@ -12,7 +12,8 @@ from ble_devices import BleDevice, search_and_return_new_device, DeviceEntity, c
     SOIL_SENSOR_SERVICE_UUID
 from global_cache import actual_unique_id
 from topics import TOPIC_S_CONNECT_ALL, TOPIC_S_CONNECT, TOPIC_S_SCAN_FOR_NEW, TOPIC_D_SCAN_FOR_NEW_RESPONSE, \
-    TOPIC_S_ADD_DEVICE, TOPIC_D_ADD_DEVICE_RESPONSE, TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT
+    TOPIC_S_ADD_DEVICE, TOPIC_D_ADD_DEVICE_RESPONSE, TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT, \
+    TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT_CONNECTION
 
 DEVICES: dict[str, BleDevice] = {}
 
@@ -72,11 +73,20 @@ async def scan_detection_callback(device: BLEDevice, data: AdvertisementData):
     if SOIL_SENSOR_SERVICE_UUID in device.metadata.get('uuids'): # and device.address in DEVICES.keys().__dict__:
         print(f"Soil sensor read: {device.name} - {device.address}")
 
-        if(105 not in data.manufacturer_data.keys()):
+        if (6 in data.manufacturer_data.keys()):
+            print("test")
+
+        if(105 not in data.manufacturer_data.keys() and 5 not in data.manufacturer_data.keys()):
             print("Soil sensor advetisement packet without data.")
+            bus.sendMessage(topicName=TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT_CONNECTION, address=device.address)
             return
 
-        byte_array = data.manufacturer_data[105]
+        byte_array = None
+        if (105 in data.manufacturer_data.keys()):
+            byte_array = data.manufacturer_data[105]
+        if (5 in data.manufacturer_data.keys()):
+            byte_array = data.manufacturer_data[5]
+
 
         soil_moisture = ((byte_array[1] << 8) | byte_array[0]) / 10
         battery = ((byte_array[3] << 8) | byte_array[2]) / 10

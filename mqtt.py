@@ -7,7 +7,7 @@ from pubsub import pub as bus
 from datetime import datetime
 
 import global_cache
-from topics import TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT
+from topics import TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT, TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT_CONNECTION
 import paho.mqtt.client as mqtt
 
 mqtt_client: mqtt.Client = None
@@ -110,3 +110,25 @@ def mqtt_populate(address: str, soil_moisture, battery):
     mqtt_client.publish(topic, message)
 
 bus.subscribe(mqtt_populate, TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT)
+
+def mqtt_populate_connection_adv(address: str):
+    global mqtt_client
+    if mqtt_client is None or mqtt_client.is_connected() is False:
+        print("MQTT not connected initialization again.")
+        connet_client()
+
+
+    print("populating measurements on mqtt")
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    data = {
+        "address": address,
+        "type": "connection",
+        "timestamp": current_time
+    }
+
+    message = json.dumps(data)
+
+    topic = 'bleconnect/' + address  # Using the address as the topic
+    mqtt_client.publish(topic, message)
+
+bus.subscribe(mqtt_populate_connection_adv, TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT_CONNECTION)

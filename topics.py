@@ -22,4 +22,5 @@ TOPIC_S_SM_TIME_INTERVAL = "soil_sensor.time_interval"
 TOPIC_S_SM_R_BATTERY = "soil_sensor.read_battery"
 TOPIC_D_SM_R_BATTERY_RESPONSE = "soil_sensor.read_battery_response"
 
+TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT_CONNECTION = "soil_sensor.soil_measure.connection.advertisement"
 TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT = "soil_sensor.soil_measure.advertisement"

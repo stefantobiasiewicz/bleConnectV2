@@ -12,20 +12,23 @@ db_host = os.environ.get("DB_HOST")
 db_port = os.environ.get("DB_PORT")
 db_name = os.environ.get("DB_NAME")
 
-# Połączenie z bazą danych
-connection = psycopg2.connect(
-    user=db_user,
-    password=db_password,
-    host=db_host,
-    port=db_port,
-    database=db_name
-)
-
-# Tworzenie kursora do wykonywania poleceń SQL
-cursor = connection.cursor()
+connection = None
+cursor = None
 
 def init_db():
     try:
+        global connection
+        connection = psycopg2.connect(
+            user=db_user,
+            password=db_password,
+            host=db_host,
+            port=db_port,
+            database=db_name
+        )
+
+        global cursor
+        cursor = connection.cursor()
+
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS measurement (
                 id SERIAL PRIMARY KEY,
@@ -59,6 +62,9 @@ def insert_measurement_with_params(date, address, soil_measure, battery):
 
 def debug_soil_advetise(address: str, soil_moisture, battery):
     print("saving to db")
-    insert_measurement_with_params(datetime.now(), address, soil_moisture, battery)
+    try:
+        insert_measurement_with_params(datetime.now(), address, soil_moisture, battery)
+    except Exception:
+        print("can't save to db")
 
 bus.subscribe(debug_soil_advetise, TOPIC_D_SM_SOIL_MEASURE_ADVERTISEMENT)
